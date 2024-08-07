@@ -5,6 +5,8 @@ import com.learning.journalApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,23 +18,11 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @GetMapping
-    private List<User> getAll(){
-        return userService.getAll();
-    }
+    @PutMapping
+    public ResponseEntity<?> updateUser(@RequestBody User user){
 
-    @PostMapping
-    private ResponseEntity<?> createUser(@RequestBody User user){
-        try {
-            userService.saveEntry(user);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        }catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @PutMapping("/{userName}")
-    public ResponseEntity<?> updateUser(@RequestBody User user, @PathVariable String userName){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
         User userInDb = userService.findByUserName(userName);
 
         if(userInDb != null){
@@ -42,6 +32,18 @@ public class UserController {
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
+    }
+
+    @PostMapping
+    public void createUser(@RequestBody User user){
+        userService.saveEntry(user);
+    }
+
+    @DeleteMapping("/user")
+    public ResponseEntity<?> deleteUserById(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }
